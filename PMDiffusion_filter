@@ -1,0 +1,61 @@
+function [Iend,Ipoll] = PMDiffusion(I0,dt,Tend,Tpoll,K)
+% Perona Malik diffusion equation
+% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Inputs: 
+%   I0: Initial image 
+%   dt: time step
+%   Tend: end time
+%   Tpoll: times at which to poll
+%   K: edge strength threshold
+% 
+
+
+
+% Output: Solution of the PM diffusion equation
+  gmag=imgradient(I0,'central')
+  g=exp(gmag.^2/-K^2)             %equation5
+  du= I0
+  [m,n] = size(I0)
+  Ipoll = zeros(m,n,numel(Tpoll))
+  ctr=1
+   for i=0:dt:Tend  
+       
+  gmag=imgradient(du,'central')
+  g=exp(gmag.^2/-K^2) 
+  
+  
+ Uip =  du([2:m,m],:) - du                              
+ Uis =  du-du([1,1:m-1],:) 
+ Ujp =  du(:,[2:n,n]) - du                              
+ Ujs =  du-du(:,[1,1:n-1])
+ 
+ 
+
+ 
+ gip =  0.5*(g([2:m,m],:) + g   )                           
+ gis = 0.5*( g([1,1:m-1],:) + g )
+ gjp = 0.5*( g(:,[2:n,n]) + g )                             
+ gjs = 0.5*( g(:,[1,1:n-1]) + g )
+ 
+ du=du+dt*(gip.*Uip-gis.*Uis+gjp.*Ujp-gjs.*Ujs)
+  if abs(i-Tpoll(ctr)) < 1e-8
+      Ipoll(:,:,ctr) = du;
+      ctr = ctr + 1;
+  end
+   end
+  
+   numT = numel(Tpoll)
+for nitr = 1:numT
+    % Display intermediate images at different times 
+    figure(81)
+      subplot(1,numT,nitr);
+      imshow( Ipoll(:,:,nitr))
+     
+        figure(211)
+      subplot(1,numT,nitr);
+      Ie=edge(Ipoll(:,:,nitr),'canny')
+       imshow( Ie ,[],'InitialMagnification','fit' );
+ 
+  
+end
+end
